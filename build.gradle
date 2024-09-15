@@ -1,0 +1,98 @@
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.3.3'
+    id 'io.spring.dependency-management' version '1.1.6'
+    id 'org.openapi.generator' version '7.8.0'
+    id "io.freefair.lombok" version "8.10"
+}
+
+group = 'com.gdlsct'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    //database
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.postgresql:postgresql'
+    implementation 'org.liquibase:liquibase-core'
+
+    //openapi
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+    implementation 'jakarta.validation:jakarta.validation-api'
+
+    //tests
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+sourceSets.main.java.srcDirs += "$buildDir/generated"
+
+tasks.register("generate store warehouse api", GenerateTask) {
+    String basePackage = "store_warehouse_api.server"
+
+    generatorName.set("spring")
+    library.set("spring-boot")
+    inputSpec.set("/Users/gdlsct/IdeaProjects/store-warehouse-api/src/main/resources/specs/api.yaml")
+//    remoteInputSpec.set()
+//    auth.set("")
+    outputDir.set("$buildDir/generated")
+    ignoreFileOverride.set(".openapi-generator-ignore")
+    configOptions.set([
+            useSpringBoot3                      : "true",
+            invokerPackage                      : basePackage,
+            apiPackage                          : basePackage + ".api",
+            modelPackage                        : basePackage + ".model",
+            configPackage                       : basePackage + ".configuration",
+            basePackage                         : basePackage,
+            useOptional                         : "true",
+            openApiNullable                     : "false",
+            interfaceOnly                       : "false",
+            sourceFolder                        : "",
+            generateModelTests                  : "true",
+            generateApiTests                    : "true",
+            testOutput                          : "$rootDir/src/java",
+            additionalModelTypeAnnotations      : "@lombok.Builder(toBuilder = true)\n@lombok.RequiredArgsConstructor\n@lombok.AllArgsConstructor",
+            generatedConstructorWithRequiredArgs: "false",
+            useTags                             : "true"
+    ])
+}
+
+tasks.withType(GenerateTask).configureEach {
+    if (name != "openApiGenerate") {
+        group = "generation"
+    }
+}
+
+tasks.register("generate all") {
+    group = "generation"
+    dependsOn tasks.matching {it.group == "generation" && it.name != "generate all"}
+}
+
+compileJava.dependsOn 'generate all'

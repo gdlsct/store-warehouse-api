@@ -1,0 +1,38 @@
+openapi: 3.0.3
+info:
+  title: Модели запросов и ответов эндпоинта some-endpoint
+  version: 1.0.0
+paths:
+  /get-item:
+    post:
+      tags:
+        - Item
+      operationId: getItem
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+      responses:
+        '200':
+          description: Успешно выполнено
+        '400':
+          description: Неверный формат введеных данных
+        '500':
+          description: Внутренняя ошибка сервера
+      summary: Добавление нового товара на склад
+components:
+  schemas:
+    id:
+      description: Имя кондитерского изделия
+      type: string
+      format: uuid
+    price:
+      description: Цена кондитерского изделия
+      type: number
+      example: 50_000
+    count:
+      description: Количество доступного товара
+      type: integer
+      example: 5
