@@ -11,4 +11,4 @@ paths:
   /api/v1/item:
     $ref: 'resource/save-item.yaml#/paths/~1save-item'
   /api/v1/item/{id}:
-    $ref: 'resource/get-item.yaml#/paths/~1get-item'
+    $ref: 'resource/get-item.yaml#/paths/~1get-item~1{id}'

@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id:  1
+      author: AndreevIId
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult:  0
+            sql: SELECT COUNT (*) FROM information_schema.tables WHERE table_name = 'item'
+      comment: Таблица для хранения сущности Item
+      changes:
+        - createTable:
+            tableName:  item
+            columns:
+              - column:
+                  name:  id
+                  type:  uuid
+                  constraints:
+                    primaryKey:  true
+                    nullable:  false
+              - column:
+                  name:  name
+                  type:  text
+                  constraints:
+                    nullable:  false
+              - column:
+                  name: price
+                  type: double
+                  constraints:
+                    nullable: false
+              - column:
+                  name: count
+                  type: integer
+                  constraints:
+                    nullable: false

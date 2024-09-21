@@ -3,20 +3,24 @@ info:
   title: Модели запросов и ответов эндпоинта some-endpoint
   version: 1.0.0
 paths:
-  /get-item:
-    post:
+  /get-item/{id}:
+    get:
       tags:
         - Item
       operationId: getItem
       parameters:
-        - in: query
+        - in: path
           name: id
           required: true
           schema:
             $ref: '#/components/schemas/id'
       responses:
         '200':
-          description: Успешно выполнено
+          description: Тело ответа на запроса сохранения нового товара на склад
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetItemResponse'
         '400':
           description: Неверный формат введеных данных
         '500':
@@ -24,15 +28,39 @@ paths:
       summary: Добавление нового товара на склад
 components:
   schemas:
+    GetItemResponse:
+      required:
+        - id
+        - name
+        - price
+        - count
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/id'
+        name:
+          $ref: '#/components/schemas/name'
+        price:
+          $ref: '#/components/schemas/price'
+        count:
+          $ref: '#/components/schemas/count'
     id:
       description: Имя кондитерского изделия
       type: string
       format: uuid
+      nullable: false
+    name:
+      description: Имя кондитерского изделия
+      type: string
+      example: "Холодильник"
+      nullable: false
     price:
       description: Цена кондитерского изделия
       type: number
       example: 50_000
+      nullable: false
     count:
       description: Количество доступного товара
       type: integer
       example: 5
+      nullable: false
