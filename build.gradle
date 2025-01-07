@@ -5,7 +5,7 @@ plugins {
     id 'org.springframework.boot' version '3.3.3'
     id 'io.spring.dependency-management' version '1.1.6'
     id 'org.openapi.generator' version '7.8.0'
-    id "io.freefair.lombok" version "8.10"
+    id "io.freefair.lombok" version "8.6"
 }
 
 group = 'com.gdlsct'
@@ -44,55 +44,48 @@ dependencies {
     implementation 'jakarta.validation:jakarta.validation-api'
 
     //tests
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'org.junit.jupiter:junit-jupiter-api:5.11.0'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
 }
 
-sourceSets.main.java.srcDirs += "$buildDir/generated"
+sourceSets.main.java.srcDirs += "$buildDir/generated/openapi"
 
-tasks.register("generate store warehouse api", GenerateTask) {
-    String basePackage = "store_warehouse_api.server"
-
-    generatorName.set("spring")
-    library.set("spring-boot")
-    inputSpec.set("/Users/gdlsct/IdeaProjects/store-warehouse-api/src/main/resources/specs/api.yaml")
-//    remoteInputSpec.set()
-//    auth.set("")
-    outputDir.set("$buildDir/generated")
-    ignoreFileOverride.set(".openapi-generator-ignore")
-    configOptions.set([
-            useSpringBoot3                      : "true",
-            invokerPackage                      : basePackage,
-            apiPackage                          : basePackage + ".api",
-            modelPackage                        : basePackage + ".model",
-            configPackage                       : basePackage + ".configuration",
-            basePackage                         : basePackage,
-            useOptional                         : "true",
-            openApiNullable                     : "false",
-            interfaceOnly                       : "false",
-            sourceFolder                        : "",
-            generateModelTests                  : "true",
-            generateApiTests                    : "true",
-            testOutput                          : "$rootDir/src/java",
-            additionalModelTypeAnnotations      : "@lombok.Builder(toBuilder = true)\n@lombok.RequiredArgsConstructor\n@lombok.AllArgsConstructor",
-            generatedConstructorWithRequiredArgs: "false",
-            useTags                             : "true"
-    ])
-}
+tasks.register("store-warehouse", GenerateTask)
 
 tasks.withType(GenerateTask).configureEach {
     if (name != "openApiGenerate") {
         group = "generation"
+
+        remoteInputSpec.set("https://raw.githubusercontent.com/gdlsct/api-specifications/refs/heads/main/" + it.getName() + "/api.yaml")
+
+        generatorName.set("spring")
+        library.set("spring-boot")
+
+        ignoreFileOverride.set(".openapi-generator-java-sources.ignore")
+        outputDir.set("$buildDir/generated/openapi")
+
+        configOptions != null ? configOptions : configOptions.set([
+                useSpringBoot3                : "true",
+                invokerPackage                : it.getName(),
+                apiPackage                    : it.getName() + ".api",
+                modelPackage                  : it.getName() + ".model",
+                configPackage                 : it.getName() + ".configuration",
+                basePackage                   : it.getName(),
+                useOptional                   : "true",
+                openApiNullable               : "false",
+                interfaceOnly                 : "false",
+                sourceFolder                  : "",
+                generateModelTests            : "true",
+                generateApiTests              : "true",
+                testOutput                    : "$rootDir/src/java",
+                additionalModelTypeAnnotations: "@lombok.Builder(toBuilder = true)",
+                useTags                       : "true"
+        ])
     }
 }
 
-tasks.register("generate all") {
-    group = "generation"
-    dependsOn tasks.matching {it.group == "generation" && it.name != "generate all"}
-}
-
-compileJava.dependsOn 'generate all'
+compileJava.dependsOn tasks.matching { it.group == "generation" }
